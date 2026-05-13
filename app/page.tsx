@@ -1,93 +1,80 @@
 "use client";
 import { useState } from 'react';
-import { Bot, Code, Loader2, Search, AlertCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Bot, Code, Loader2, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const [showDev, setShowDev] = useState(false);
-  const [error, setError] = useState('');
 
   const runAudit = async () => {
     if (!url) return;
     setLoading(true);
     setReport(null);
-    setError('');
 
-    try {
-      // REPLACE THIS URL WITH YOUR ACTUAL N8N WEBHOOK URL
-      const response = await fetch('https://astroproduct.app.n8n.cloud/webhook-test/ux-audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-
-      if (!response.ok) throw new Error('Failed to audit page');
-      
-      const data = await response.json();
-      setReport(data);
-    } catch (err) {
-      setError('Failed to connect to the analysis engine. Please check your n8n setup.');
-    } finally {
-      setLoading(false);
-    }
+    const response = await fetch('YOUR_N8N_WEBHOOK_URL', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await response.json();
+    setReport(data);
+    setLoading(false);
   };
 
   return (
     <main className="min-h-screen bg-gray-50 p-6 md:p-12">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900">UX Audit Engine</h1>
-        <p className="text-gray-600 mb-8">Enter a URL to run an AI-driven UX and Technical analysis.</p>
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">UX Audit Engine</h1>
+          <p className="text-gray-500">AI-powered insights for your web projects</p>
+        </div>
 
-        <div className="flex gap-2 mb-8">
+        {/* Input Card */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8 flex gap-3">
           <input 
             type="url" 
-            placeholder="https://example.com"
-            className="flex-1 p-3 border rounded-lg shadow-sm"
+            placeholder="Paste your URL here..."
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
           <button 
             onClick={runAudit}
             disabled={loading}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
           >
-            {loading ? <Loader2 className="animate-spin" /> : 'Start Audit'}
+            {loading ? <Loader2 className="animate-spin" /> : <><Sparkles size={18}/> Audit</>}
           </button>
         </div>
 
-        {error && <div className="p-4 bg-red-100 text-red-700 rounded-lg mb-6">{error}</div>}
-
+        {/* Report Section */}
         {report && (
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-            {/* UX Report Section */}
-            <div className="flex items-center gap-2 mb-4">
-              <Bot className="text-indigo-600" />
-              <h2 className="text-xl font-bold">UX Audit Report</h2>
-            </div>
-            <div className="prose max-w-none text-gray-700 mb-8">
-              {report.ux_summary}
-            </div>
-
-            {/* Dev Mode Toggle */}
-            <button 
-              onClick={() => setShowDev(!showDev)}
-              className="text-sm text-indigo-600 font-semibold underline mb-4"
-            >
-              {showDev ? 'Hide Technical Details' : 'View Technical/Dev Report'}
-            </button>
-
-            {/* Dev Report Section */}
-            {showDev && (
-              <div className="p-6 bg-gray-900 text-gray-100 rounded-lg font-mono text-sm overflow-x-auto">
-                <div className="flex items-center gap-2 mb-3 text-emerald-400">
-                  <Code size={16} />
-                  <span className="font-bold">Dev/Bug Report</span>
-                </div>
-                <pre className="whitespace-pre-wrap">{JSON.stringify(report.dev_bugs, null, 2)}</pre>
+          <div className="space-y-6">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Bot className="text-indigo-600" /> UX Analysis
+              </h2>
+              <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed">
+                <ReactMarkdown>{report.ux_summary}</ReactMarkdown>
               </div>
-            )}
+            </div>
+
+            {/* Dev Mode */}
+            <div className="border-t pt-6">
+              <button onClick={() => setShowDev(!showDev)} className="text-sm text-gray-500 hover:text-indigo-600 font-medium">
+                {showDev ? 'Hide Technical Details' : 'View Technical/Dev Report'}
+              </button>
+              {showDev && (
+                <div className="mt-4 p-6 bg-gray-900 text-gray-100 rounded-xl font-mono text-sm shadow-xl">
+                  <h3 className="text-emerald-400 font-bold mb-3 flex items-center gap-2"><Code size={16}/> Dev Report</h3>
+                  <div className="whitespace-pre-wrap"><ReactMarkdown>{report.dev_bugs}</ReactMarkdown></div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
